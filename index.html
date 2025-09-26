@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Tournament</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+
+        <!-- Main Menu -->
+        <div id="menu">
+            <button onclick="chooseMode('friend')">🎮 Vs Friend</button>
+            <button onclick="chooseMode('ai')">🤖 Vs AI Bot</button>
+            <button onclick="chooseMode('online')">🌍 Online Mode</button>
+        </div>
+
+        <!-- Online Setup -->
+        <div id="online-setup" style="display:none; margin-top:20px;">
+            <h2>Online Mode</h2>
+            <button onclick="createRoom()">➕ Create Room</button>
+            <button onclick="joinRoom()">🔑 Join Room</button>
+            <button onclick="randomMatch()">🎲 Random Player</button>
+
+            <!-- This will display the room input box dynamically -->
+            <div id="room-input" style="margin-top:15px;"></div>
+        </div>
+
+
+
+
+        <!-- Player Input -->
+        <div id="player-setup" style="display: none;">
+            <div id="inputs"></div>
+            <button onclick="goToDifficulty()">Next → Toss</button>
+        </div>
+
+        <!-- Difficulty Selection -->
+        <div id="difficulty-section" style="display: none;">
+            <h2>Select Difficulty</h2>
+            <button onclick="setDifficulty('easy')">🟢 Easy</button>
+            <button onclick="setDifficulty('medium')">🟡 Medium</button>
+            <button onclick="setDifficulty('hard')">🔴 Hard</button>
+            <button onclick="setDifficulty('difficult')">🟣 Difficult</button>
+        </div>
+
+        <!-- Toss Section -->
+        <div id="toss-section" style="display: none;">
+            <h2 id="toss-message"></h2>
+            <div class="coin" id="coin">🪙</div>
+            <button onclick="doToss('Head')">🪙 Head</button>
+            <button onclick="doToss('Tail')">🪙 Tail</button>
+            <div id="toss-result" style="margin-top:15px; font-size:1.1rem;"></div>
+            <button id="continue-btn" style="display:none;" onclick="startGame()">➡️ Continue</button>
+        </div>
+
+        <!-- Game -->
+        <div id="game" style="display: none;">
+            <div class="scoreboard" id="scoreboard"></div>
+            <div id="board"></div>
+            <div id="status">Waiting...</div>
+            <div>
+                <button onclick="resetGame()">🔄 Restart</button>
+                <button onclick="backToMenu()">⬅️ Back</button>
+            </div>
+        </div>
+    </div>
+    <script src="scripts.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</body>
+
+</html>
