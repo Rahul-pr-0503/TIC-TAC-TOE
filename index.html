@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe Tournament</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -30,13 +30,10 @@
             <div id="room-input" style="margin-top:15px;"></div>
         </div>
 
-
-
-
         <!-- Player Input -->
         <div id="player-setup" style="display: none;">
             <div id="inputs"></div>
-            <button onclick="goToDifficulty()">Next → Toss</button>
+            <button id="next-btn" onclick="goToNextStep()">➡️ Continue</button>
         </div>
 
         <!-- Difficulty Selection -->
@@ -69,7 +66,8 @@
             </div>
         </div>
     </div>
-    <script src="scripts.js"></script>
+
+    <script src="script.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </body>
 

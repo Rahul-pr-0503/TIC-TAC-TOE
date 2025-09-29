@@ -1,3 +1,10 @@
+/*******************************
+ Fixed script.js
+ - Correct AI turn switching
+ - Minimax works whether AI is X or O
+ - Cleaned compatibility wrapper
+*******************************/
+
 let board = ["", "", "", "", "", "", "", "", ""];
 let currentPlayer = "X";
 let winner = null;
@@ -8,6 +15,9 @@ let player2 = "Player 2";
 let scores = { X: 0, O: 0 };
 let symbols = {};
 let tossWinner = "";
+
+let aiPlayer = "O";
+let humanPlayer = "X";
 
 let socket;
 let room = null;
@@ -44,27 +54,36 @@ function chooseMode(selectedMode) {
   if (mode === "online") {
     onlineSetup.style.display = "block";
 
-    // Connect to server only once
-    if (!socket) {
-      socket = io("http://localhost:3000"); // change if deployed
+    if (!socket && typeof io !== "undefined") {
+      try {
+        socket = io("http://localhost:3000"); // change if deployed
+      } catch (e) {
+        console.warn("socket.io client not reachable:", e);
+        socket = null;
+      }
 
-      // ✅ Listeners (always active)
-      socket.on("startGame", msg => {
-        alert(msg);
-        goToToss();
-      });
+      if (socket) {
+        socket.on("startGame", msg => {
+          alert(msg || "Both players joined!");
+          goToToss();
+        });
 
-      socket.on("roomAssigned", assignedRoom => {
-        room = assignedRoom;
-        alert("Matched with a random player. Game starting!");
-        goToToss();
-      });
+        socket.on("roomAssigned", assignedRoom => {
+          room = assignedRoom;
+          alert("Matched with a random player. Game starting!");
+          goToToss();
+        });
 
-      socket.on("moveMade", ({ index, player }) => {
-        board[index] = player;
-        renderBoard();
-        nextTurn();
-      });
+        socket.on("moveMade", ({ index, player }) => {
+          board[index] = player;
+          renderBoard();
+          nextTurn();
+        });
+
+        socket.on("disconnect", () => {
+          console.log("Disconnected from server");
+        });
+      }
     }
   } else {
     setup.style.display = "block";
@@ -89,8 +108,10 @@ function createRoom() {
   `;
 }
 function confirmCreateRoom() {
-  room = document.getElementById("newRoomId").value.trim();
+  const el = document.getElementById("newRoomId");
+  room = el ? el.value.trim() : "";
   if (!room) { alert("Enter a valid room ID"); return; }
+  if (!socket) { alert("Not connected to server."); return; }
   socket.emit("joinGame", room);
   alert("Room created. Waiting for another player...");
 }
@@ -102,21 +123,26 @@ function joinRoom() {
   `;
 }
 function confirmJoinRoom() {
-  room = document.getElementById("joinRoomId").value.trim();
+  const el = document.getElementById("joinRoomId");
+  room = el ? el.value.trim() : "";
   if (!room) { alert("Enter a valid room ID"); return; }
+  if (!socket) { alert("Not connected to server."); return; }
   socket.emit("joinGame", room);
   alert("Joining room... waiting for opponent");
 }
 
 function randomMatch() {
+  if (!socket) { alert("Not connected to server."); return; }
   socket.emit("randomMatch");
   alert("Searching for random opponent...");
 }
 
 // ---------------- PLAYER SETUP ----------------
 function goToNextStep() {
-  player1 = document.getElementById("p1").value || "Player 1";
-  player2 = mode === "friend" ? (document.getElementById("p2").value || "Player 2") : "AI Bot";
+  const p1el = document.getElementById("p1");
+  const p2el = document.getElementById("p2");
+  player1 = p1el ? (p1el.value || "Player 1") : "Player 1";
+  player2 = (mode === "friend" && p2el) ? (p2el.value || "Player 2") : (mode === "friend" ? "Player 2" : "AI Bot");
 
   setup.style.display = "none";
   if (mode === "ai") {
@@ -136,7 +162,7 @@ function setDifficulty(level) {
 function goToToss() {
   tossSection.style.display = "block";
   tossMessage.innerText =
-    mode === "friend" || mode === "online"
+    (mode === "friend" || mode === "online")
       ? `${player1}, choose Head or Tail for the toss:`
       : `${player1}, choose Head or Tail for the toss against AI:`;
 }
@@ -167,6 +193,12 @@ function doToss(choice) {
     }
 
     scores = { X: 0, O: 0 };
+
+    // set AI/human mapping
+    if (mode === "ai") {
+      aiPlayer = (symbols.X === "AI Bot") ? "X" : "O";
+      humanPlayer = (aiPlayer === "X") ? "O" : "X";
+    }
 
     tossResultElement.innerText =
       `🪙 Toss Result: ${tossResult}. ${tossWinner} will play first as X.`;
@@ -200,7 +232,7 @@ function handleClick(index) {
   if (mode === "online") {
     board[index] = currentPlayer;
     renderBoard();
-    socket.emit("move", { room, index, player: currentPlayer });
+    if (socket) socket.emit("move", { room, index, player: currentPlayer });
     nextTurn();
     return;
   }
@@ -268,8 +300,8 @@ function aiMove() {
       return;
     }
 
-    currentPlayer = "X";
-    statusElement.innerText = `${symbols[currentPlayer]}'s turn`;
+    // ✅ FIXED: switch turns properly
+    nextTurn();
   }
 }
 
@@ -298,15 +330,15 @@ function minimaxMove() {
 }
 function minimax(b, depth, isMax) {
   const winnerCheck = checkImmediateWinner();
-  if (winnerCheck === "X") return -10 + depth;
-  if (winnerCheck === "O") return 10 - depth;
+  if (winnerCheck === humanPlayer) return -10 + depth;
+  if (winnerCheck === aiPlayer) return 10 - depth;
   if (!b.includes("")) return 0;
 
   if (isMax) {
     let best = -Infinity;
     b.forEach((cell, i) => {
       if (b[i] === "") {
-        b[i] = "O";
+        b[i] = aiPlayer;
         best = Math.max(best, minimax(b, depth+1, false));
         b[i] = "";
       }
@@ -316,7 +348,7 @@ function minimax(b, depth, isMax) {
     let best = Infinity;
     b.forEach((cell, i) => {
       if (b[i] === "") {
-        b[i] = "X";
+        b[i] = humanPlayer;
         best = Math.min(best, minimax(b, depth+1, true));
         b[i] = "";
       }
@@ -324,7 +356,7 @@ function minimax(b, depth, isMax) {
     return best;
   }
 }
-function findBlockingMove() { return findWinningMove("X"); }
+function findBlockingMove() { return findWinningMove(humanPlayer); }
 function findWinningMove(player) {
   for (let [a,b,c] of winPatterns) {
     if (board[a]===player && board[b]===player && board[c]==="") return c;
@@ -378,13 +410,3 @@ function backToMenu() {
   continueBtn.style.display = "none";
   coinElement.innerText = "🪙";
 }
-
-// ---------------- NAVBAR SCROLL EFFECT ----------------
-window.addEventListener("scroll", function () {
-  const navbar = document.querySelector(".prema");
-  if (window.scrollY > 50) {
-    navbar.classList.add("scrolled");
-  } else {
-    navbar.classList.remove("scrolled");
-  }
-});
