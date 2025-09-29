@@ -29,14 +29,19 @@ Play against a **Friend**, an **AI Bot** (with multiple difficulty levels), or c
 ## 🖼️ Screenshots
 
 ### Main Menu
-![Main Menu](assets/screenshots/menu.png)
+![Main Menu](s1.jpg)
+
+### MultiPlayer
+![V/S Friend](s2.jpg)
+
+### AI BOT
+![AI Bot Level Of Difficult](s3.jpg)
 
 ### Toss Screen
-![Toss Screen](assets/screenshots/toss.png)
+![Toss](s4.jpg)
 
-### Gameplay
-![Gameplay](assets/screenshots/game.png)
-
+### GamePlay
+![Game Play](s5.jpg)
 ---
 
 ## 🛠️ Tech Stack
@@ -46,3 +51,20 @@ Play against a **Friend**, an **AI Bot** (with multiple difficulty levels), or c
 - **Realtime:** WebSockets (via Socket.IO)
 
 ---
+
+## 📂 Project Structure
+├── index.html # Main game UI
+├── style.css # Styling (responsive + animations)
+├── script.js # Frontend game logic (AI, toss, UI updates)
+├── server.js # Node.js + Socket.IO server for online mode
+├── assets/ # (optional) images/screenshots
+└── README.md # Project documentation
+
+---
+
+## ⚡ Installation & Setup
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/your-username/tic-tac-toe-tournament.git
+cd tic-tac-toe-tournament
